@@ -3,21 +3,12 @@ import chalk from 'chalk'
 import { forEach } from 'p-iteration'
 import { createClient, printGraphQLError, queryAll, queryOnce } from './lib'
 import {
-  ArticleNode,
   BlogNode,
   CollectionNode,
-  CommentNode,
-  ProductNode,
-  ProductOptionNode,
-  ProductVariantNode,
-  ShopPolicyNode,
 } from './nodes'
 import {
-  ARTICLES_QUERY,
   BLOGS_QUERY,
   COLLECTIONS_QUERY,
-  PRODUCTS_QUERY,
-  SHOP_POLICIES_QUERY,
 } from './queries'
 
 export const sourceNodes = async (
@@ -44,26 +35,8 @@ export const sourceNodes = async (
 
     console.time(msg)
     await Promise.all([
-      createNodes('articles', ARTICLES_QUERY, ArticleNode, args, async x => {
-        if (x.comments)
-          await forEach(x.comments.edges, async edge =>
-            createNode(await CommentNode(imageArgs)(edge.node)),
-          )
-      }),
       createNodes('blogs', BLOGS_QUERY, BlogNode, args),
       createNodes('collections', COLLECTIONS_QUERY, CollectionNode, args),
-      createNodes('products', PRODUCTS_QUERY, ProductNode, args, async x => {
-        if (x.variants)
-          await forEach(x.variants.edges, async edge =>
-            createNode(await ProductVariantNode(imageArgs)(edge.node)),
-          )
-
-        if (x.options)
-          await forEach(x.options, async option =>
-            createNode(await ProductOptionNode(imageArgs)(option)),
-          )
-      }),
-      createShopPolicies(args),
     ])
     console.timeEnd(msg)
   } catch (e) {
